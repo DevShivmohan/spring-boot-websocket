@@ -26,7 +26,8 @@ function disconnect() {
 
 function sendData() {
 	var data = JSON.stringify({
-		'user' : $("#user").val()
+		'message' : $("#user").val(),
+		'channel':'user'
 	})
 	if(isConnected)
 	    ws.send(data);

@@ -12,12 +12,13 @@ import java.util.Date;
 public class SocketTextHandler extends TextWebSocketHandler {
     @Override
     protected void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+        System.out.println("Session id-"+session.getId());
         String payload = message.getPayload();
         System.out.println("message from client-"+payload);
-        JSONObject jsonObject = new JSONObject(payload);
-        System.out.println("json-"+jsonObject);
+        JSONObject jsonObject = new JSONObject();
         jsonObject.put("message","Hello data");
         jsonObject.put("time",new Date());
+        System.out.println("Sending response-"+jsonObject);
         session.sendMessage(new TextMessage(jsonObject.toString()));
     }
 }
