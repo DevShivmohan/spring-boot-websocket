@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h1>WebSocket Example</h1>
+<div id="messages"></div>
+<input type="text" id="messageInput">
+<button onclick="sendMessage()">Send</button>
+
+<script>
+    var socket = new SockJS('http://localhost:8080/websocket'); // Update URL as per your backend
+    var stompClient = Stomp.over(socket);
+
+    // Set authorization header
+        var headers = {
+            auth: 'Bearer eyJhbGciOiJIUzM4NCJ9.eyJzdWIiOiJTaGl2Lm1vaGFuIiwiaWF0IjoxNzEyNzU2Mjk1LCJleHAiOjE3MTI3OTk0OTV9.mbMFjUMiiefqQ8WfhAHtXjcQm6rnE8r707EUcK91YEt_QDHWMyvyT1oyjNp7JBx7' // Replace with your actual access token
+        };
+
+    stompClient.connect(headers, function (frame) {
+        console.log('Connected: ' + frame);
+        stompClient.subscribe('/topic/messages', function (message) {
+        console.log('received data');
+            showMessage(JSON.parse(message.body).content); // Assuming server sends JSON
+        });
+    });
+
+    function sendMessage() {
+        var messageInput = document.getElementById("messageInput").value;
+        stompClient.send("/app/send", {}, messageInput);
+        document.getElementById("messageInput").value = ''; // Clear input field after sending
+    }
+
+    function showMessage(message) {
+        var messagesDiv = document.getElementById("messages");
+        var p = document.createElement("p");
+        p.textContent = message;
+        messagesDiv.appendChild(p);
+    }
+</script>
+</body>
+</html>
