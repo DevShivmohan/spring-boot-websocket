@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h1>WebSocket full duplex communication</h1>
+<div id="messages"></div>
+<input type="text" id="userIdInput" placeholder="username for registration">
+<button onclick="connect()">Connect</button> <br><br><br>
+
+<input type="text" id="toUserIdInput" placeholder="username to be send">
+<input type="text" id="messageInput" placeholder="Enter message">
+<button onclick="sendMessage()">Send</button>
+
+<textarea id="receivedMessages" rows="10" cols="50" readonly placeholder="Received messages"></textarea>
+<textarea id="sentMessages" rows="10" cols="50" readonly placeholder="Sent messages"></textarea>
+
+<script>
+        var ws;
+        var chatArea = document.getElementById('chat-area');
+
+        function connect() {
+            var username = document.getElementById('userIdInput').value;
+            ws = new WebSocket('ws://localhost:8080/websocket?username=' + encodeURIComponent(username));
+            ws.onopen = function() {
+                console.log('Connection established');
+                alert('Connection established')
+            };
+
+            ws.onmessage = function(event) {
+                var message = event.data;
+                message.time=new Date(message.time);
+                console.log("Received: " + message);
+                appendToTextArea(message);
+            };
+
+            ws.onclose = function() {
+                console.log('WebSocket connection closed');
+                alert('WebSocket connection closed')
+            };
+        }
+
+        function sendMessage() {
+            var body = {
+                toUser: document.getElementById('toUserIdInput').value,
+                message: document.getElementById('messageInput').value,
+                time: new Date()
+            };
+            ws.send(JSON.stringify(body));
+            console.log('Message sent ' + JSON.stringify(body));
+            appendToTextAreaSent(JSON.stringify(body));
+    }
+
+    function appendToTextArea(message) {
+        var textarea = document.getElementById('receivedMessages');
+        textarea.value += message + '\n'; // Append the message with a newline
+    }
+
+    function appendToTextAreaSent(message) {
+        var textarea = document.getElementById('sentMessages');
+        textarea.value += message + '\n'; // Append the message with a newline
+    }
+
+        // connect(); // Connect to WebSocket when page loads
+    </script>
+</body>
+</html>
