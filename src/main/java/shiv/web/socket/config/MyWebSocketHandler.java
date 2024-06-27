@@ -96,7 +96,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 .orElse(null);
         if (removalWebSocketSession != null) {
             sessionsMapper.get(username).remove(removalWebSocketSession);
-            log.error("Connection closed {}" , session);
+            log.warn("Connection closed {}" , session);
         }
     }
 
