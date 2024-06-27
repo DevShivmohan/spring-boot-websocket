@@ -1,6 +1,7 @@
 package shiv.web.socket.config;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.socket.CloseStatus;
@@ -19,6 +20,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+@Log4j2
 @Component
 public class MyWebSocketHandler extends TextWebSocketHandler {
     /**
@@ -35,11 +37,9 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished (WebSocketSession session) throws Exception {
         final String username = extractUsernameFromSession(session);
-        if (sessionsMapper.get(username) == null) {
-            sessionsMapper.put(username, new CopyOnWriteArrayList<>());
-        }
+        sessionsMapper.computeIfAbsent(username, k -> new CopyOnWriteArrayList<>());
         sessionsMapper.get(username).add(session);
-        System.out.println("Connection established " + sessionsMapper.get(username));
+        log.info("Connection established {}", sessionsMapper.get(username));
     }
 
     /**
@@ -54,13 +54,11 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
         final MessageRequestDto messageRequestDto = objectMapper.readValue(message.getPayload(),
                 MessageRequestDto.class);
         if (sessionsMapper.get(messageRequestDto.getToUser()) == null) {
-            System.out.println("Message sending failed because user does not connected "
-                    + messageRequestDto.getToUser());
+            log.error("Message sending failed because user does not connected {}", messageRequestDto.getToUser());
             return;
         }
         final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
         sessionsMapper.get(messageRequestDto.getToUser())
-                .stream()
                 .forEach(webSocketSession ->
                 {
                     try {
@@ -71,12 +69,11 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                         atomicBoolean.set(true);
                     }
                     catch (IOException e) {
-                        System.out.println("Error in sending message " + e);
+                        log.error("Error in sending message {}", e);
                     }
                 });
         if (atomicBoolean.get()) {
-            System.out.println("Message " + messageRequestDto.getMessage()
-                    + " sent to all active sessions of user " + messageRequestDto.getToUser());
+            log.info("Message {} sent to all active sessions of user {}", messageRequestDto.getMessage(), messageRequestDto.getToUser());
         }
     }
 
@@ -99,7 +96,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
                 .orElse(null);
         if (removalWebSocketSession != null) {
             sessionsMapper.get(username).remove(removalWebSocketSession);
-            System.out.println("Connection closed " + session);
+            log.error("Connection closed {}" , session);
         }
     }
 
