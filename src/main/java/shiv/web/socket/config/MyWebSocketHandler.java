@@ -15,6 +15,7 @@ import shiv.web.socket.model.MessageResponseDto;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -95,7 +96,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
      */
     private String extractUsernameFromSession (final WebSocketSession webSocketSession) {
         final MultiValueMap<String, String> queryParams = UriComponentsBuilder
-                .fromUri(webSocketSession.getUri())
+                .fromUri(Objects.requireNonNull(webSocketSession.getUri()))
                 .build()
                 .getQueryParams();
         return queryParams.getFirst("username");
