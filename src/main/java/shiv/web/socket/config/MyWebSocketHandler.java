@@ -15,7 +15,6 @@ import shiv.web.socket.model.MessageResponseDto;
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -57,19 +56,16 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
             log.error("Message sending failed because user does not connected {}", messageRequestDto.getToUser());
             return;
         }
+        final var messageJson = objectMapper.writeValueAsString(new MessageResponseDto(extractUsernameFromSession(session), messageRequestDto.getMessage(), messageRequestDto.getTime()));
         final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
         sessionsMapper.get(messageRequestDto.getToUser())
                 .forEach(webSocketSession ->
                 {
                     try {
-                        webSocketSession.sendMessage(new TextMessage(
-                                objectMapper.writeValueAsString(
-                                        new MessageResponseDto(extractUsernameFromSession(session),
-                                                messageRequestDto.getMessage(),messageRequestDto.getTime()))));
+                        webSocketSession.sendMessage(new TextMessage(messageJson));
                         atomicBoolean.set(true);
-                    }
-                    catch (IOException e) {
-                        log.error("Error in sending message {}", e);
+                    } catch (IOException e) {
+                        log.error("Error in sending messages {}", e);
                     }
                 });
         if (atomicBoolean.get()) {
@@ -87,16 +83,8 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed (WebSocketSession session, CloseStatus status)
             throws Exception {
         final String username = extractUsernameFromSession(session);
-        // finding current session from the list of sessions of a single user
-        final WebSocketSession removalWebSocketSession = sessionsMapper.get(username)
-                .stream()
-                .filter(webSocketSession -> Objects.equals(webSocketSession.getId(),
-                        session.getId()))
-                .findFirst()
-                .orElse(null);
-        if (removalWebSocketSession != null) {
-            sessionsMapper.get(username).remove(removalWebSocketSession);
-            log.warn("Connection closed {}" , session);
+        if (sessionsMapper.get(username).remove(session)) {
+            log.warn("Connection closed {}", session);
         }
     }
 
