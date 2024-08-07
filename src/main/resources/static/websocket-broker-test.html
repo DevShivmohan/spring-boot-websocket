@@ -1,0 +1,36 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WebSocket Example</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/sockjs-client/1.5.0/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+</head>
+<body>
+<h1>WebSocket message broker testing</h1>
+<div id="messages"></div>
+<textarea id="receivedMessages" rows="10" cols="50" placeholder="Received messages" style="width:1000px"></textarea>
+<script>
+    var socket = new SockJS('http://localhost:8080/chat/websocket');
+    var stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, function (frame) {
+        console.log('Connected: ' + frame);
+
+        stompClient.subscribe('/topic/user', function (message) {
+        console.log('received data');
+            showMessage(message.body);
+        });
+
+    });
+
+    function showMessage(message) {
+        var textarea = document.getElementById('receivedMessages');
+        textarea.value = message;
+    }
+</script>
+</body>
+</html>
+
