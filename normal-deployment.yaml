@@ -1,25 +1,43 @@
-  apiVersion: apps/v1
-  kind: Deployment
-  metadata:
-    labels:
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    environment: test
+  name: websocketservicedeploy
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
       environment: test
-    name: testdeploy
-  spec:
-    replicas: 3
-    selector:
-      matchLabels:
+  minReadySeconds: 10
+  strategy:
+    rollingUpdate:
+      maxSurge: 1
+      maxUnavailable: 0
+    type: RollingUpdate
+  template:
+    metadata:
+      labels:
         environment: test
-    minReadySeconds: 10
-    strategy:
-      rollingUpdate:
-        maxSurge: 1
-        maxUnavailable: 0
-      type: RollingUpdate
-    template:
-      metadata:
-        labels:
-          environment: test
-      spec:
-        containers:
-        - image: nginx:1.16
-          name: nginx
+    spec:
+      containers:
+        - image: devshivmohan/web-socket-service
+          name: websocketservice
+          ports:
+            - containerPort: 8080  # Port inside the container
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: websocketservice
+  labels:
+    environment: test
+spec:
+  selector:
+    environment: test
+  ports:
+    - protocol: TCP
+      port: 8080          # Port exposed by the Service
+      targetPort: 8080    # Port on the container
+      nodePort: 30000     # Port on the Node (accessible from localhost)
+  type: NodePort         # Type to expose the service via NodePort, to access ip use cmd - minikube ip
