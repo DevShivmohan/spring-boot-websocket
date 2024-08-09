@@ -26,7 +26,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     /**
      * assuming one userId has multiple sessions
      */
-    private final Map<String, List<WebSocketSession>> sessionsMapper = new ConcurrentHashMap<>();
+    private final Map<String, List<WebSocketSession>> sessionsCache = new ConcurrentHashMap<>();
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
@@ -37,9 +37,9 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     @Override
     public void afterConnectionEstablished (WebSocketSession session) throws Exception {
         final String username = extractUsernameFromSession(session);
-        sessionsMapper.computeIfAbsent(username, k -> new CopyOnWriteArrayList<>());
-        sessionsMapper.get(username).add(session);
-        log.info("Connection established {}", sessionsMapper.get(username));
+        sessionsCache.computeIfAbsent(username, k -> new CopyOnWriteArrayList<>());
+        sessionsCache.get(username).add(session);
+        log.info("Connection established {}", sessionsCache.get(username));
     }
 
     /**
@@ -53,13 +53,13 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
             throws Exception {
         final MessageRequestDto messageRequestDto = objectMapper.readValue(message.getPayload(),
                 MessageRequestDto.class);
-        if (sessionsMapper.get(messageRequestDto.getToUser()) == null) {
+        if (sessionsCache.get(messageRequestDto.getToUser()) == null) {
             log.error("Message sending failed because user does not connected {}", messageRequestDto.getToUser());
             return;
         }
         final var messageJson = objectMapper.writeValueAsString(new MessageResponseDto(extractUsernameFromSession(session), messageRequestDto.getMessage(), messageRequestDto.getTime()));
         final AtomicBoolean atomicBoolean = new AtomicBoolean(false);
-        sessionsMapper.get(messageRequestDto.getToUser())
+        sessionsCache.get(messageRequestDto.getToUser())
                 .forEach(webSocketSession ->
                 {
                     try {
@@ -84,7 +84,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     public void afterConnectionClosed (WebSocketSession session, CloseStatus status)
             throws Exception {
         final String username = extractUsernameFromSession(session);
-        if (sessionsMapper.get(username).remove(session)) {
+        if (sessionsCache.get(username).remove(session)) {
             log.warn("Connection closed {}", session);
         }
     }
