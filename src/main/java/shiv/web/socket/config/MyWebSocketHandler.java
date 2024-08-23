@@ -45,7 +45,7 @@ public class MyWebSocketHandler extends TextWebSocketHandler {
     /**
      * Sending message to a user on all active sessions
      * @param session
-     * @param message
+     * @param message a -> 1,2,3    b -> 1
      * @throws Exception
      */
     @Override
