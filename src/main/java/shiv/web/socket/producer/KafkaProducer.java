@@ -17,12 +17,12 @@ import java.util.UUID;
 public class KafkaProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
 
-    public void sendDummyMessages() throws JsonProcessingException {
+    public void sendDummyMessages(String value) throws JsonProcessingException {
         final ObjectMapper objectMapper = new ObjectMapper();
         final Map<String, String> map = new HashMap<>();
         map.put("id", UUID.randomUUID().toString());
         map.put("name", "Shivmohan");
-        kafkaTemplate.send("create-order", objectMapper.writeValueAsString(map));
-        log.info("Emitted kafka event {}", map);
+        kafkaTemplate.send("create-order", value);
+        log.info("Emitted kafka event {}", value);
     }
 }

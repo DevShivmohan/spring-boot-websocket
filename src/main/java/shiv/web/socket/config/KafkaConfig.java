@@ -45,7 +45,7 @@ public class KafkaConfig {
         ConcurrentKafkaListenerContainerFactory<String, String> factory = new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.setConcurrency(3);  // set concurrency if needed
-        factory.setErrorHandler(new SeekToCurrentErrorHandler(new FixedBackOff(10000L, 3)));  // Retry 3 times with 1 second delay
+//        factory.setErrorHandler(new SeekToCurrentErrorHandler(new FixedBackOff(10000L, 3)));  // Retry 3 times with 1 second delay
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.MANUAL_IMMEDIATE); // manual commit
         return factory;
     }
