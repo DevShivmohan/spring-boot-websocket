@@ -1,0 +1,47 @@
+version: '2'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_LOG_RETENTION_MS: 604800000  # Retain logs for 7 days
+      KAFKA_LOG_RETENTION_BYTES: -1  # No size-based retention limit
+      KAFKA_LOG_SEGMENT_BYTES: 1073741824  # 1 GB log segment size
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 1
+      KAFKA_MIN_IN_SYNC_REPLICAS: 1
+      KAFKA_MESSAGE_MAX_BYTES: 1000000  # Adjust if needed
+
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /home/admin1/shiv-deck/projects/spring-boot-websocket/kafka/certs:/etc/kafka/secrets  # Mount the directory with the certificates
+
+  create_topic_order-initiated:
+    image: confluentinc/cp-kafka
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKER: kafka:29092  # Use PLAINTEXT port here
+      KAFKA_TOPIC: create-order
+    command: >
+      /bin/bash -c "echo 'Creating Kafka topic'; 
+      /usr/bin/kafka-topics --create --topic $KAFKA_TOPIC --partitions 1 --replication-factor 1 
+      --if-not-exists --zookeeper $KAFKA_BROKER 
+      --config retention.ms=604800000"  # Set retention period to 7 days

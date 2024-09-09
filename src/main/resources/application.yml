@@ -1,0 +1,26 @@
+#spring:
+#  kafka:
+#    bootstrap-servers: localhost:29093  # SSL Port of Kafka broker
+#    security:
+#      protocol: SSL
+#    properties:
+#      ssl:
+#        keystore:
+#          location: /home/admin1/shiv-deck/projects/spring-boot-websocket/kafka/certs/kafka-client-keystore.jks
+#          password: Test@123
+#        key:
+#          password: Test@123
+#        truststore:
+#          location: /home/admin1/shiv-deck/projects/spring-boot-websocket/kafka/certs/kafka-client-truststore.jks
+#          password: Test@123
+#    consumer:
+#      group-id: order-transactions
+#      auto-offset-reset: earliest
+#      enable-auto-commit: false
+#      properties:
+#        ssl.endpoint.identification.algorithm: ""  # Disables hostname verification if needed
+#    producer:
+#      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+#      properties:
+#        ssl.endpoint.identification.algorithm: ""  # Disables hostname verification if needed

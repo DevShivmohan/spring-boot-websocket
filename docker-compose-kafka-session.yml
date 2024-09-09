@@ -1,0 +1,59 @@
+version: '2'
+# 4:37 started will terminate 4:39
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:7.4.4
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    ports:
+      - 22181:2181
+
+  kafka:
+    image: confluentinc/cp-kafka:7.4.4
+    depends_on:
+      - zookeeper
+    ports:
+      - 29092:29092
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,PLAINTEXT_HOST://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      # Add session timeout and poll interval settings here
+#      KAFKA_GROUP_MAX_SESSION_TIMEOUT_MS: 43200000  # 12 hours in milliseconds
+      KAFKA_GROUP_MAX_SESSION_TIMEOUT_MS: 60000  # 12 hours in milliseconds
+      KAFKA_CONSUMER_SESSION_TIMEOUT_MS: 60000     # 5 minutes
+#      KAFKA_MAX_POLL_INTERVAL_MS: 43200000          # 12 hours
+      KAFKA_MAX_POLL_INTERVAL_MS: 60000          # 12 hours
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+  create_topic_weather-realtime-data:
+    image: confluentinc/cp-kafka
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: weather-realtime-data
+    command: [ "/bin/bash", "-c", "echo 'Creating Kafka topic'; /usr/bin/kafka-topics --create --topic $KAFKA_TOPIC --partitions 1 --replication-factor 1 --if-not-exists --zookeeper $KAFKA_BROKER" ]
+
+  create_topic_request-weather-recovery-data:
+    image: confluentinc/cp-kafka
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: request-weather-recovery-data
+    command: [ "/bin/bash", "-c", "echo 'Creating Kafka topic'; /usr/bin/kafka-topics --create --topic $KAFKA_TOPIC --partitions 1 --replication-factor 1 --if-not-exists --zookeeper $KAFKA_BROKER" ]
+
+  create_topic_weather-recovery-data:
+    image: confluentinc/cp-kafka
+    depends_on:
+      - kafka
+    environment:
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: weather-recovery-data
+    command: [ "/bin/bash", "-c", "echo 'Creating Kafka topic'; /usr/bin/kafka-topics --create --topic $KAFKA_TOPIC --partitions 1 --replication-factor 1 --if-not-exists --zookeeper $KAFKA_BROKER" ]
