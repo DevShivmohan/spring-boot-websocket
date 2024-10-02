@@ -4,22 +4,44 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
-import javax.servlet.http.HttpSession;
+import javax.servlet.http.Cookie;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 @Component
 public class SessionUtil {
 
-    private static HttpSession getSession() {
+    private static HttpServletResponse getSessionResponse() {
         ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-        return attr.getRequest().getSession(true);  // true will create a new session if it doesn't exist
+        return attr.getResponse();
     }
 
-    public static void setSessionAttribute(String key, Object value) {
-        getSession().setAttribute(key, value);
+    private static HttpServletRequest getSessionRequest() {
+        ServletRequestAttributes attr = (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+        return attr.getRequest();
     }
 
-    public static Object getSessionAttribute(String key) {
-        return getSession().getAttribute(key);
+    public static void setSessionAttribute(Object value) {
+        Cookie jwtCookie = new Cookie("JWT_TOKEN_COOKIE", value.toString());
+        jwtCookie.setHttpOnly(true);
+        jwtCookie.setSecure(true);
+        jwtCookie.setPath("/");
+        jwtCookie.setMaxAge(365 * 24 * 60 * 60);
+        getSessionResponse().addCookie(jwtCookie);
+    }
+
+    public static Object getSessionAttribute() {
+        Cookie[] cookies = getSessionRequest().getCookies();
+        String bearerToken = null;
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if ("JWT_TOKEN_COOKIE".equals(cookie.getName())) {
+                    bearerToken = cookie.getValue();
+                    return bearerToken;
+                }
+            }
+        }
+        return bearerToken;
     }
 }
 
