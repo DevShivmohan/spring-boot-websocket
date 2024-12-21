@@ -20,7 +20,7 @@ public class KafkaProducer {
     private final KafkaTemplate<String, String> kafkaTemplate;
     private static final ObjectMapper objectMapper = new ObjectMapper();
 
-//    @Scheduled(fixedRate = 100L)
+    @Scheduled(fixedRate = 100L)
 //    @PostConstruct
     public void sendKafkaData() throws JsonProcessingException {
         kafkaTemplate.send("thing1", objectMapper.writeValueAsString(KafkaPayload.builder()

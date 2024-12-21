@@ -28,9 +28,9 @@ public class KafkaConsumer {
     @KafkaListener(topics = "thing1", groupId = "group_id")
     public void consumeFromAllPartitions(ConsumerRecord<String, String> record) throws JsonProcessingException {
         final var payload = objectMapper.readValue(record.value(), KafkaPayload.class);
-        if(payload.getName().toLowerCase().contains("exception")){
-            throw new RuntimeException("Force fully raised");
-        }
+//        if(payload.getName().toLowerCase().contains("exception")){
+//            throw new RuntimeException("Force fully raised");
+//        }
         log.info("Consumed message from partition {} offset {} and value {}", record.partition(), record.offset(), record.value());
     }
 }
