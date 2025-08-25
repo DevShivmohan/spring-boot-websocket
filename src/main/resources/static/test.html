@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>WebSocket Image Broadcast</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client/dist/sockjs.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/stompjs/lib/stomp.min.js"></script>
+</head>
+<body>
+<h2>Live Image Stream</h2>
+<img id="liveImage" alt="waiting..." style="max-width: 600px; border: 1px solid #ccc;" />
+
+<script>
+    const socket = new SockJS("http://10.0.1.184:8080/chat/websocket");
+    const stompClient = Stomp.over(socket);
+
+    stompClient.connect({}, () => {
+      stompClient.subscribe("/topic/ss-data", (message) => {
+        const base64Image = message.body;
+        document.getElementById("liveImage").src = "data:image/jpeg;base64," + base64Image;
+      });
+    });
+</script>
+</body>
+</html>
