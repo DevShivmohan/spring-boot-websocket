@@ -36,9 +36,7 @@ public class WebSocketMessageBroker {
             Rectangle rectangle = new Rectangle(Toolkit.getDefaultToolkit().getScreenSize());
             BufferedImage bufferedImage = robot.createScreenCapture(rectangle);
             ImageIO.write(bufferedImage, "jpg", filePath);
-            byte[] imageBytes = Files.readAllBytes(filePath.toPath());
-            String base64Image = Base64.getEncoder().encodeToString(imageBytes);
-            messagingTemplate.convertAndSend("/topic/ss-data", base64Image);
+            messagingTemplate.convertAndSend("/topic/ss-data", Base64.getEncoder().encodeToString(Files.readAllBytes(filePath.toPath())));
         } catch (Exception e) {
             log.error("Error occurred ", e);
         }
